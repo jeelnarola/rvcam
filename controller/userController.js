@@ -8,7 +8,6 @@ export const addSF = async(req,res)=>{
         if(!user){
             return res.status(404).json({success:false,Message:"User Not Found...!"})
         }
-
         if(role == 'Student'){
             if (!enrollmentNumber || !courseId || !semester || !division || !SID) {
                 return res.status(400).json({success:false, error: "Student must have enrollmentNumber, courseId, division, SID and semester" });
