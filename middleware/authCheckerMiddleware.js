@@ -4,10 +4,11 @@ import { User } from '../model/userSchema.js';
 
 export const authChecker = async(req,res,next)=>{
     try {
-        const Authorization = req.headers.authorization.replace("Bearer ","")
+        const Authorization = req.headers.authorization;
         if(!Authorization){
             return res.status(401).json({success:false,message:"User Not authenticated !!"})
         }
+        Authorization.replace("Bearer ","")
         const decode = await jwt.verify(Authorization,process.env.JWTKEY)
         if(!decode){
             return res.status(401).json({success:false,message:"Invalid"})
