@@ -1,23 +1,28 @@
 import mongoose from "mongoose";
 import { type } from "os";
 const subjectSchema = new mongoose.Schema({
-    name:{
-        type:String,
-        unique:true,
-        require:true,
+    name: {
+        type: String,
+        unique: true,
+        require: true,
     },
-    codeNumber : {
-        type:Number
+    codeNumber: {
+        type: Number
     },
-    credits:{
-        type:Number
+    credits: {
+        type: Number
     },
-    facultyId:[
+    facultyId: [
         {
-            type:mongoose.Schema.Types.ObjectId,
-            ref:'User',
-            require:true
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+            require: true
         }
-    ]
+    ],
+    courseId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Course',
+        require: true
+    }
 })
-export const Subject = mongoose.model("Subject",subjectSchema)
+export const Subject = mongoose.model("Subject", subjectSchema)
