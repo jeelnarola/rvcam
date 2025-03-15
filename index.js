@@ -21,7 +21,8 @@ if (cluster.isPrimary) {
     });
   } else {
     const app = express();
-
+    app.use(express.json())
+    app.use(express.urlencoded({extended:true}))
     app.use('/api',router)
     app.get("/", (req, res) => {
         return res.send(`Hello from Worker ${process.pid}`);
