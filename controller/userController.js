@@ -74,3 +74,63 @@ export const getSF = async (req, res) => {
         res.status(500).json({ success: false, msg: 'Internal  Error.', Error: error })
     }
 }
+
+export const updateSF = async (req, res) => {
+    try {
+        let { id } = req.params;
+        let { role, SID, enrollmentNumber, courseId, semester, division, HODId, subjects, email, ...commonFields } = req.body
+        const user = await User.findById(id)
+        if (!user) {
+            return res.status(404).json({ success: false, Message: "User Not Found...!" })
+        }
+        if (req.user && (req.user.role == "Admin" || req.user.role == "Student")) {
+            if (role == 'Student') {
+                if (!enrollmentNumber || !courseId || !semester || !division || !SID) {
+                    return res.status(400).json({ success: false, error: "Student must have enrollmentNumber, courseId, division, SID and semester" });
+                } else if (role === "Faculty") {
+                    if (!HODId || !subjects || subjects.length === 0) {
+                        return res.status(400).json({ success: false, error: "Faculty must have HODId and at least one subject" });
+                    }
+                }
+            }
+            const newUser = new User({
+                ...commonFields,
+                role,
+                SID: role === "Student" ? SID : null,
+                enrollmentNumber: role === "Student" ? enrollmentNumber : null,
+                courseId,
+                semester,
+                HODId: role === "Faculty" ? HODId : null,
+                subjects: role === "Faculty" ? subjects : [],
+            });
+            await newUser.save();
+            res.status(201).json({ success: true, message: `${role} Update successfully`, user: newUser });
+        } else {
+            res.status(401).json({ success: false, message: "Unauthorized Page" });
+        }
+    } catch (error) {
+        console.log(`Error By user Controller Js For updateFS`, error);
+        res.status(500).json({ success: false, msg: 'Internal  Error.', Error: error })
+    }
+}
+
+export const deleteSf = async (req, res) => {
+    try {
+        const { ids } = req.body;
+        const user = await User.find({ _id: { $in: ids } });
+        if (user.length === 0) {
+            return res.status(404).json({ success: false, Message: "User Not Found...!" })
+        }
+
+        if (req.user && req.user.role == "Admin") { 
+            let deleteUser = await User.deleteMany({ _id: { $in: ids } })
+            return res.json({ message: "Deleted successfully", data:deleteUser });
+        } else { 
+            res.status(401).json({ success: false, message: "Unauthorized Page" }); 
+        }
+    } catch (error) {
+        console.log(`Error By user Controller Js For updateFS`, error);
+        res.status(500).json({ success: false, msg: 'Internal  Error.', Error: error })
+    }
+}
+

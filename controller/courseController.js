@@ -57,7 +57,7 @@ export const deleteCourse = async (req, res) => {
 
         // Delete records
         const result = await Course.deleteMany({ _id: { $in: ids } });
-        return res.json({ message: "Deleted successfully", result });
+        return res.json({ message: "Deleted successfully", data:result });
     } catch (error) {
         console.log(`Error By Course Controller Js For deleteCourse`, error);
         res.status(500).json({ success: false, msg: 'Internal  Error.', Error: error })
