@@ -65,7 +65,6 @@ export const getSF = async (req, res) => {
             pagination: {
                 currentPage: page,
                 totalFind,
-                totalFaculties,
                 totalPages: Math.ceil(totalStudents / limit),
             }
         });
