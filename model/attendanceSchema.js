@@ -15,13 +15,13 @@ const attendanceSchema = new mongoose.Schema({
         type:Number,
         require:true
     },
+    subjectId:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:'Subject',
+        require:true
+    },
     attendance:[
         {
-            subjectId:{
-                type:mongoose.Schema.Types.ObjectId,
-                ref:'Subject',
-                require:true
-            },
             studentAttendance:[{
                 type:mongoose.Schema.Types.ObjectId,
                 ref:'User',

@@ -4,6 +4,7 @@ const userSchema = new mongoose.Schema({
     name: {
         type: String,
         require: true,
+        unique:true,
     },
     password:{
         type:String,
@@ -24,6 +25,7 @@ const userSchema = new mongoose.Schema({
             message: "Mobile number must be exactly 10 digits",
         },
         require:true,
+        unique:true,
     },
     role: {
         type: String,
@@ -41,7 +43,7 @@ const userSchema = new mongoose.Schema({
         require:true,
     },
     admissionDate:{
-        type:Number,
+        type:Date,
         require:true
     },
     dob: {
@@ -50,12 +52,12 @@ const userSchema = new mongoose.Schema({
     },
      // Student-Specific Fields
     SID:{
-        type:String,
+        type:Number,
         unique:true,
         require:true,
     },
     enrollmentNumber: {
-        type: String,
+        type: Number,
         unique: true
     },
     courseId: {
