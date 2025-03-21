@@ -2,15 +2,15 @@ import { Subject } from "../model/subjectSchema.js";
 
 export const addSubject = async (req,res)=>{
     try {
-        let {name,codeNumber,credits,facultyId,courseId} =req.body;
-        const subjectFind = await Subject.find({name:name})
+        let {name,codeNumber,credits,facultyId,courseId,semester} =req.body;
+        const subjectFind = await Subject.findOne({name:name}) 
         if(subjectFind){
-            return res.status(100).json({ success: false, Message: "Subject Alrday Extis...!" })
+            return res.status(200).json({ success: false, Message: "Subject Alrday Extis...!" })
         }
         if (req.user && req.user.role == "Admin"){
             const newSubject = new Subject({
-                name,codeNumber,credits,facultyId,courseId
-            })
+                name,codeNumber,credits,facultyId,courseId,semester
+            })            
             await newSubject.save();
             return res.status(201).json({ success: true, message: "Subject created successfully", data: newSubject });
         }else{
@@ -24,29 +24,41 @@ export const addSubject = async (req,res)=>{
 
 export const getSubject = async(req,res)=>{
     try {
-        let {name,codeNumber,credits,facultyId,courseId} =req.query;
+        let {name,codeNumber,credits,facultyId,courseId,page,limit} =req.query;
         page = parseInt(page);
         limit = parseInt(limit);
         let skip = (page - 1) * limit;
-        let searchFilter;
-        searchFilter = {
-            $or: [
-                { name: { $regex: name, $options: "i" } }, // Case-insensitive name search
-                { codeNumber: { $regex: codeNumber, $options: "i" } },
-                { credits: { $regex: credits, $options: "i" } },
-                { courseId: { $regex: courseId, $options: "i" } },
-                { facultyId: { $regex: facultyId, $options: "i" } },
-            ]
-        };
-        const findSubject = await Subject.find(searchFilter).skip(skip).limit(limit);
-        const totalFind = await Subject.countDocuments(searchFilter);
+        let searchFilter = {};
+        let filterConditions = [];
+
+        if (name) filterConditions.push({ name: { $regex: name, $options: "i" } });
+        if (codeNumber) filterConditions.push({ codeNumber: { $regex: codeNumber, $options: "i" } });
+        if (credits) filterConditions.push({ courseId: { $regex: credits, $options: "i" } });
+
+        // Apply search filter only if filters exist
+        if (filterConditions.length > 0) {
+            searchFilter.$or = filterConditions;
+        }
+         const findSubject = await Subject.find(searchFilter).skip(skip).limit(limit);
+                const totalFind = await Subject.countDocuments(searchFilter);
+        // searchFilter = {
+        //     $or: [
+        //         { name: { $regex: name, $options: "i" } }, // Case-insensitive name search
+        //         { codeNumber: { $regex: codeNumber, $options: "i" } },
+        //         { credits: { $regex: credits, $options: "i" } },
+        //         { courseId: { $regex: courseId, $options: "i" } },
+        //         { facultyId: { $regex: facultyId, $options: "i" } },
+        //     ]
+        // };
+        // const findSubject = await Subject.find(searchFilter).skip(skip).limit(limit);
+        // const totalFind = await Subject.countDocuments(searchFilter);
         res.status(200).json({
             success: true,
             findSubject,
             pagination: {
                 currentPage: page,
                 totalFind,
-                totalPages: Math.ceil(totalStudents / limit),
+                totalPages: Math.ceil(totalFind / limit),
             }
         });
 

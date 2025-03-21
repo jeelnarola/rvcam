@@ -4,7 +4,7 @@ import express from 'express';
 import { router } from './router/index.router.js';
 import 'dotenv/config'
 import { Database } from './config/databaseConfig.js';
-
+import cookie from 'cookie-parser'
 const numCPUs = os.availableParallelism();
 cluster.schedulingPolicy = cluster.SCHED_RR;
 if (cluster.isPrimary) {
@@ -23,6 +23,7 @@ if (cluster.isPrimary) {
     const app = express();
     app.use(express.json())
     app.use(express.urlencoded({extended:true}))
+    app.use(cookie())
     app.use('/api',router)
     app.get("/", (req, res) => {
         return res.send(`Hello from Worker ${process.pid}`);

@@ -1,19 +1,19 @@
 import jwt from 'jsonwebtoken';
-import dotenv from 'dotenv/config';
+import 'dotenv/config';
 import { User } from '../model/userSchema.js';
 
 export const authChecker = async(req,res,next)=>{
     try {
-        const Authorization = req.headers.authorization;
+        let Authorization = req.headers.authorization;
         if(!Authorization){
             return res.status(401).json({success:false,message:"User Not authenticated !!"})
         }
-        Authorization.replace("Bearer ","")
+        Authorization = Authorization.replace("Bearer ", "") 
         const decode = await jwt.verify(Authorization,process.env.JWTKEY)
         if(!decode){
             return res.status(401).json({success:false,message:"Invalid"})
         }
-        const user = await User.findById(decode.userID)
+        const user = await User.findById(decode.userid)
         if(!user){
             res.status(404).json({success:false,message:"User Not Found."})
         }
