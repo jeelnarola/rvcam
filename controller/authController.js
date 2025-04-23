@@ -5,15 +5,18 @@ export const login = async(req,res)=>{
     try {
         let {SID,email,password} =req.body
         let user;
-        if(req.body.email){
-          user = await User.findOne({$or: [{ email:email }]})
+       
+       if(req.body.email){
+       user = await User.findOne({email:email})
         }else if(req.body.SID){
             user = await User.findOne({$or: [{ SID:SID }]})
         }
         if(!user){
-            return res.status(400).json({success:false,message:`User Not Found. please Chekc.`})
+            res.status(400).json({success:false,message:`User Not Found. please Chekc.`})
         }
         const mtchPassword = await user.comparePassword(password)
+        console.log(mtchPassword);
+        
         if(mtchPassword){
            let token = await generateTokenAndCookieSet(user._id,res)
             res.status(201).cookie('jwt-RVCAPUS', token, { httpOnly: true, sameSite: 'strict', maxAge: 1 * 24 * 60 * 60 * 1000 }).json({success:true,token:token,user:{
