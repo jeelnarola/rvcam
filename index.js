@@ -22,7 +22,7 @@ if (cluster.isPrimary) {
   const app = express();
   app.use(express.json())
   app.use(urlencoded({ extended: true }))
-  app.use(cors({ origin: "https://rvcamfront-m9nuj0l2f-jeel-narolas-projects.vercel.app", credentials: true }));
+  app.use(cors({ origin: "https://rvcamfront.vercel.app", credentials: true }));
   app.use(cookie())
   app.get("/get", (req, res) => {
      res.json({msg:`Hello from Worker ${process.pid}`});
