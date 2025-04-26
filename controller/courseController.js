@@ -35,14 +35,23 @@ export const getCourse = async (req, res) => {
 export const updateCourse = async (req, res) => {
     try {
         let { id } = req.params
-        let { courseName } = req.body
+        console.log(id);
+        let  {courseName}  = req.body
+        console.log("courseName",courseName);
+        
         const findCourse = await Course.findById(id)
+        console.log("findCourse",findCourse);
+        
         if (!findCourse) {
             return res.status(404).json({ success: false, message: "No Data Found.." })
         }
         if (req.user && req.user.role == "Admin") {
-            let Course = await Course.findByIdAndUpdate({ id, courseName })
-            return res.status(201).json({ success: true, message: "Update Course SuccessFully...", data: Course })
+            const updatedCourse = await Course.findByIdAndUpdate(
+                id,
+                { courseName },  // The updated fields, here only courseName
+                { new: true }    // Return the updated document
+            );
+            return res.status(201).json({ success: true, message: "Update Course SuccessFully...", data: updatedCourse })
         } else {
             return res.status(401).json({ success: false, message: "Unauthorized Page" });
         }
@@ -58,7 +67,7 @@ export const deleteCourse = async (req, res) => {
     try {
 
         const { ids } = req.body; // Array
-
+        
         // Check if IDs exist
         const existingUsers = await Course.find({ _id: { $in: ids } });
 
