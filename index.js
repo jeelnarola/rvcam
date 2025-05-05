@@ -19,10 +19,22 @@ if (cluster.isPrimary) {
     cluster.fork();
   });
 } else {
+  const allowedOrigins = [ // for development
+    'https://rvcamfront.vercel.app' // for production
+  ];
   const app = express();
   app.use(express.json())
   app.use(urlencoded({ extended: true }))
-  app.use(cors({ origin: "https://rvcamfront.vercel.app",  methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],credentials: true }));
+  app.use(cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true // if you're using cookies or Authorization headers
+  }));
   app.use(cookie())
   app.get("/get", (req, res) => {
      res.json({msg:`Hello from Worker ${process.pid}`});
