@@ -24,18 +24,13 @@ export const addSF = async (req, res) => {
             else if (user.mobileNumber === mobileNumber) message = "Mobile number is already in use!";
             return res.status(400).json({ success: false, message });
         }
-        // console.log("userreq", req.user);
-
-        // Only admin should be able to create users
         if (req.user && req.user.role == "Admin") {
 
-            // Handle Student-specific validation
             if (role === 'Student') {
                 if (!enrollmentNumber || !courseId || !semester || !division || !SID) {
                     return res.status(400).json({ success: false, error: "Student must have enrollmentNumber, courseId, division, SID, and semester" });
                 }
             }
-            // Handle Faculty-specific validation
             else if (role === "Faculty") {
                 if (!HODId || !subjects || subjects.length === 0) {
                     return res.status(400).json({ success: false, error: "Faculty must have HODId and at least one subject" });
@@ -175,7 +170,7 @@ export const getSF = async (req, res) => {
         let searchFilter = {};
         let filterConditions = [];
 
-        if (role) filterConditions.push({ role: { $regex: role, $options: "i" } });
+        if (role) filterConditions.push({role: { $in: role.map(r => new RegExp(r, 'i')) }});
         if (name) filterConditions.push({ name: { $regex: name, $options: "i" } });
         if (SID) filterConditions.push({ SID: { $regex: SID, $options: "i" } });
         if (courseId) filterConditions.push({ courseId: { $regex: courseId, $options: "i" } });
@@ -186,11 +181,11 @@ export const getSF = async (req, res) => {
         if (filterConditions.length > 0) {
             searchFilter.$or = filterConditions;
         }
-        const findUser = await User.find(searchFilter).skip(skip).limit(limit);
+        const findUser = await User.find(searchFilter).skip(skip).limit(limit).populate("courseId");
         const totalFind = await User.countDocuments(searchFilter);
         res.status(200).json({
             success: true,
-            findUser,
+            data:findUser,
             pagination: {
                 currentPage: page,
                 totalFind,
@@ -239,16 +234,16 @@ export const updateSF = async (req, res) => {
 export const deleteSf = async (req, res) => {
     try {
         const { ids } = req.body;
+        
         const user = await User.find({ _id: { $in: ids } });
         if (user.length === 0) {
             return res.status(404).json({ success: false, Message: "User Not Found...!" })
         }
-
         if (req.user && req.user.role == "Admin") {
             let deleteUser = await User.deleteMany({ _id: { $in: ids } })
             return res.json({ message: "Deleted successfully", data: deleteUser });
         } else {
-            res.status(401).json({ success: false, message: "Unauthorized Page" });
+            return res.status(401).json({ success: false, message: "Unauthorized Page" });
         }
     } catch (error) {
         console.log(`Error By user Controller Js For updateFS`, error);
