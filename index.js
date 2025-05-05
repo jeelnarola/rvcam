@@ -22,7 +22,7 @@ if (cluster.isPrimary) {
   const app = express();
   app.use(express.json())
   app.use(urlencoded({ extended: true }))
-  app.use(cors({ origin: ["https://rvcamfront.vercel.app"], credentials: true }));
+  app.use(cors({ origin: "https://rvcamfront.vercel.app",  methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],credentials: true }));
   app.use(cookie())
   app.get("/get", (req, res) => {
      res.json({msg:`Hello from Worker ${process.pid}`});
