@@ -9,7 +9,7 @@ export const addSubject = async (req,res)=>{
         }
         if (req.user && req.user.role == "Admin"){
             const newSubject = new Subject({
-                name,codeNumber,credits,facultyId,courseId,semester
+                name,codeNumber,credits,facultyId : null,courseId,semester
             })            
             await newSubject.save();
             return res.status(201).json({ success: true, message: "Subject created successfully", data: newSubject });
@@ -54,7 +54,7 @@ export const getSubject = async(req,res)=>{
         // const totalFind = await Subject.countDocuments(searchFilter);
         res.status(200).json({
             success: true,
-            findSubject,
+            data:findSubject,
             pagination: {
                 currentPage: page,
                 totalFind,

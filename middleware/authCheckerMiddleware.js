@@ -5,7 +5,7 @@ import { User } from '../model/userSchema.js';
 export const authChecker = async(req,res,next)=>{
     try {
         let Authorization = req.headers.authorization;
-        // console.log("log",Authorization);
+        console.log("log",Authorization);
         
         if(!Authorization){
             return res.status(401).json({success:false,message:"User Not authenticated !!"})

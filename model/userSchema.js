@@ -52,26 +52,33 @@ const userSchema = new mongoose.Schema({
     },
     // Student-Specific Fields
     SID: {
-        type: Number,
+        type: String,
+        required: function () {
+            return this.role === 'Student';
+        },
     },
-    enrollmentNumber: {
-        type: Number,
-        unique: true
+    enrollmentNumber:{
+        type:String
     },
     courseId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Course',
         require: true
     },
-    semester: {
-        type: String,
-        enum: ['sem1', 'sem2', 'sem3', 'sem4', 'sem5', 'sem6'],
-        require: true
-    },
-    division: {
-        type: String,
-        require: true,
-    },
+    semester:
+        [
+            {
+                type: String,
+                enum: ['sem1', 'sem2', 'sem3', 'sem4', 'sem5', 'sem6'],
+                require: true
+            }
+        ],
+    division: [
+        {
+            type: String,
+            require: true,
+        }
+    ],
     // Faculty-Specific Fields
     HODId: {
         type: mongoose.Schema.Types.ObjectId,
