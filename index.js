@@ -18,23 +18,42 @@ if (cluster.isPrimary) {
     console.log(`Worker ${worker.process.pid} died. Restarting...`);
     cluster.fork();
   });
-} else {
-  const allowedOrigins = [ // for development
-    'https://rvcamfront.vercel.app' // for production
-  ];
+} else {  
   const app = express();
   app.use(express.json())
   app.use(urlencoded({ extended: true }))
+  const allowedOrigins = [
+    'http://localhost:3000',
+    'https://rvcamfront.vercel.app'
+  ];
+  
   app.use(cors({
     origin: function (origin, callback) {
       if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
+        callback(null, origin);
       } else {
-        callback(new Error("Not allowed by CORS"));
+        callback(new Error('Not allowed by CORS'));
       }
     },
-    credentials: true // if you're using cookies or Authorization headers
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
   }));
+  
+  
+  app.use((req, res, next) => {
+    res.header("Access-Control-Allow-Credentials", "true");
+    res.header("Access-Control-Allow-Origin", req.headers.origin); // <-- Ensure dynamic origin
+    res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+    
+    // Handle preflight
+    if (req.method === "OPTIONS") {
+      return res.sendStatus(204);
+    }
+  
+    next();
+  });
+  
   app.use(cookie())
   app.get("/get", (req, res) => {
      res.json({msg:`Hello from Worker ${process.pid}`});
