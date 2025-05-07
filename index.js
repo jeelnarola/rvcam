@@ -18,7 +18,9 @@ if (cluster.isPrimary) {
     console.log(`Worker ${worker.process.pid} died. Restarting...`);
     cluster.fork();
   });
-} else {  
+} else {
+
+  
   const app = express();
   app.use(express.json())
   app.use(urlencoded({ extended: true }))

@@ -5,6 +5,7 @@ export const login = async(req,res)=>{
     try {
         let {SID,email,password} =req.body
         let user;
+       console.log(req.body);
        
        if(req.body.email){
        user = await User.findOne({email:email})

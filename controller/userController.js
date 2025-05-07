@@ -3,7 +3,7 @@ import { sendMail } from "../util/emailMessageSend.js";
 
 export const addSF = async (req, res) => {
     try {
-        let { role, SID, enrollmentNumber, courseId, semester, division, HODId, subjects, name, email, mobileNumber, ...commonFields } = req.body;
+        let { role, SID, enrollmentNumber, courseId, semester, division, HODId, subjects, name, email, mobileNumber,password, ...commonFields } = req.body;
 
         // Check if the user already exists by name
         const user = await User.findOne({
@@ -13,8 +13,6 @@ export const addSF = async (req, res) => {
                 { mobileNumber: mobileNumber }
             ]
         });
-        console.log("req.body :- ",req.body);
-        console.log("user",user);
         
         if (user) {
             
@@ -62,7 +60,7 @@ export const addSF = async (req, res) => {
                 console.log("d", d);
 
                 // Send email after successful user creation
-                sendMail(req.body.email);
+                sendMail(name,req.body.email,password);
 
                 return res.status(201).json({ success: true, message: "User created successfully", user: newUser });
             } catch (error) {
@@ -181,7 +179,14 @@ export const getSF = async (req, res) => {
         if (filterConditions.length > 0) {
             searchFilter.$or = filterConditions;
         }
-        const findUser = await User.find(searchFilter).skip(skip).limit(limit).populate("courseId");
+        const findUser = await User.find(searchFilter)
+        .skip(skip)
+        .limit(limit)
+        .populate([
+            { path: "courseId"},
+            { path: "subjects" }
+          ]);
+      
         const totalFind = await User.countDocuments(searchFilter);
         res.status(200).json({
             success: true,

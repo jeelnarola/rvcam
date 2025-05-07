@@ -73,7 +73,7 @@ const userSchema = new mongoose.Schema({
                 require: true
             }
         ],
-    division: [
+        division: [
         {
             type: String,
             require: true,
