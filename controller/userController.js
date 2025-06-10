@@ -22,7 +22,7 @@ export const addSF = async (req, res) => {
             else if (user.mobileNumber === mobileNumber) message = "Mobile number is already in use!";
             return res.status(400).json({ success: false, message });
         }
-        if (req.user && req.user.role == "Admin") {
+        // if (req.user && req.user.role == "Admin") {
 
             if (role === 'Student') {
                 if (!enrollmentNumber || !courseId || !semester || !division || !SID) {
@@ -42,6 +42,7 @@ export const addSF = async (req, res) => {
             // Prepare user data based on role
             const userData = {
                 ...commonFields,
+                password,
                 name,
                 role,
                 email,
@@ -70,7 +71,7 @@ export const addSF = async (req, res) => {
                 }
                 return res.status(500).json({ success: false, error: error.message });
             }
-        }
+        // }
     } catch (error) {
         return res.status(500).json({ success: false, error: error.message });
     }
@@ -167,7 +168,7 @@ export const getSF = async (req, res) => {
         let skip = (page - 1) * limit;
         let searchFilter = {};
         let filterConditions = [];
-
+        
         if (role) filterConditions.push({role: { $in: role.map(r => new RegExp(r, 'i')) }});
         if (name) filterConditions.push({ name: { $regex: name, $options: "i" } });
         if (SID) filterConditions.push({ SID: { $regex: SID, $options: "i" } });

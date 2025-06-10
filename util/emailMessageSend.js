@@ -50,6 +50,7 @@ const transporter = nodemailer.createTransport({
             }
           });
     } catch (error) {
-        
+        console.log(`Error By util For sendMail`,error);
+        res.status(500).json({msg:'Internal  Error.', Error:error})
     }
   }
