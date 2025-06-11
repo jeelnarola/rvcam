@@ -5,7 +5,7 @@ import cookie from 'cookie-parser'
 import cors from 'cors'
 import { router } from './router/index.router.js';
 import 'dotenv/config'
-import Database from './config/Database.js';
+import Database from './config/database.js';
 import corn from 'node-cron'
 import { sendNoticesAfterDate } from './util/sendNoticeEvent.js';
 
@@ -71,8 +71,9 @@ if (cluster.isPrimary) {
   sendNoticesAfterDate();
 });
 
+let PORT = process.env.PORT || 80000
 
-  app.listen(8080, () => {
+  app.listen(PORT, () => {
     Database();
     console.log(`Worker ${process.pid} started`);
   });
