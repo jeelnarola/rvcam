@@ -1,10 +1,11 @@
 import { User } from "../model/userSchema.js";
 import { sendMail } from "../util/emailMessageSend.js";
-
+import bcrypt from "bcrypt"
+import mongoose from "mongoose";
 export const addSF = async (req, res) => {
     try {
-        let { role, SID, enrollmentNumber, courseId, semester, division, HODId, subjects, name, email, mobileNumber,password, ...commonFields } = req.body;
-
+        let { role, SID, enrollmentNumber, courseId, semester, division, HODId, subjects, name, email, mobileNumber, password, ...commonFields } = req.body;
+let updates = {...req.body}
         // Check if the user already exists by name
         const user = await User.findOne({
             $or: [
@@ -13,9 +14,9 @@ export const addSF = async (req, res) => {
                 { mobileNumber: mobileNumber }
             ]
         });
-        
+
         if (user) {
-            
+
             let message = "User Already Exists!";
             if (user.name === name) message = "Name is already taken!";
             else if (user.email === email) message = "Email is already registered!";
@@ -24,53 +25,59 @@ export const addSF = async (req, res) => {
         }
         // if (req.user && req.user.role == "Admin") {
 
-            if (role === 'Student') {
-                if (!enrollmentNumber || !courseId || !semester || !division || !SID) {
-                    return res.status(400).json({ success: false, error: "Student must have enrollmentNumber, courseId, division, SID, and semester" });
-                }
+        if (role === 'Student') {
+            if (!enrollmentNumber || !courseId || !semester || !division || !SID) {
+                return res.status(400).json({ success: false, error: "Student must have enrollmentNumber, courseId, division, SID, and semester" });
             }
-            else if (role === "Faculty") {
-                if (!HODId || !subjects || subjects.length === 0) {
-                    return res.status(400).json({ success: false, error: "Faculty must have HODId and at least one subject" });
-                }
-                // Do NOT include enrollmentNumber for Faculty (set it to undefined)
-                enrollmentNumber = undefined;
-            } else {
-                enrollmentNumber = null,
-                    SID = null
+        }
+        else if (role === "Faculty") {
+            if (!HODId || !subjects || subjects.length === 0) {
+                return res.status(400).json({ success: false, error: "Faculty must have HODId and at least one subject" });
             }
-            // Prepare user data based on role
-            const userData = {
-                ...commonFields,
-                password,
-                name,
-                role,
-                email,
-                mobileNumber,
-                ...(role === "Student" && { SID, enrollmentNumber }), // Only include SID and enrollmentNumber for Students
-                courseId,
-                semester,
-                ...(role === "Faculty" && { HODId, subjects }) // Faculty-specific fields
-            };
+            // Do NOT include enrollmentNumber for Faculty (set it to undefined)
+            enrollmentNumber = undefined;
+        } else {
+            enrollmentNumber = null,
+                SID = null
+        }
 
-            const newUser = new User(userData);
-
-            try {
-                // Save the new user to the database
-                const d = await newUser.save();
-                console.log("d", d);
-
-                // Send email after successful user creation
-                sendMail(name,req.body.email,password);
-
-                return res.status(201).json({ success: true, message: "User created successfully", user: newUser });
-            } catch (error) {
-                // Check if the error is related to duplicate keys (like enrollmentNumber)
-                if (error.code === 11000) {
-                    return res.status(400).json({ success: false, error: "Duplicate entry detected for unique fields", error });
-                }
-                return res.status(500).json({ success: false, error: error.message });
+         if(updates.password){
+                const saltRounds = 10;
+                const hashedPassword = await bcrypt.compare(updates.password,saltRounds)
+                updates.password = hashedPassword
             }
+        // Prepare user data based on role
+        const userData = {
+            ...commonFields,
+            password:updates.password,
+            name,
+            role,
+            email,
+            mobileNumber,
+            ...(role === "Student" && { SID, enrollmentNumber }), // Only include SID and enrollmentNumber for Students
+            courseId,
+            semester,
+            ...(role === "Faculty" && { HODId, subjects }) // Faculty-specific fields
+        };
+
+        const newUser = new User(userData);
+
+        try {   
+            // Save the new user to the database
+            const d = await newUser.save();
+            console.log("d", d);
+
+            // Send email after successful user creation
+            sendMail(name, req.body.email, password);
+
+            return res.status(201).json({ success: true, message: "User created successfully", user: newUser });
+        } catch (error) {
+            // Check if the error is related to duplicate keys (like enrollmentNumber)
+            if (error.code === 11000) {
+                return res.status(400).json({ success: false, error: "Duplicate entry detected for unique fields", error });
+            }
+            return res.status(500).json({ success: false, error: error.message });
+        }
         // }
     } catch (error) {
         return res.status(500).json({ success: false, error: error.message });
@@ -168,8 +175,8 @@ export const getSF = async (req, res) => {
         let skip = (page - 1) * limit;
         let searchFilter = {};
         let filterConditions = [];
-        
-        if (role) filterConditions.push({role: { $in: role.map(r => new RegExp(r, 'i')) }});
+
+        if (role) filterConditions.push({ role: { $in: role.map(r => new RegExp(r, 'i')) } });
         if (name) filterConditions.push({ name: { $regex: name, $options: "i" } });
         if (SID) filterConditions.push({ SID: { $regex: SID, $options: "i" } });
         if (courseId) filterConditions.push({ courseId: { $regex: courseId, $options: "i" } });
@@ -181,17 +188,17 @@ export const getSF = async (req, res) => {
             searchFilter.$or = filterConditions;
         }
         const findUser = await User.find(searchFilter)
-        .skip(skip)
-        .limit(limit)
-        .populate([
-            { path: "courseId"},
-            { path: "subjects" }
-          ]);
-      
+            .skip(skip)
+            .limit(limit)
+            .populate([
+                { path: "courseId" },
+                { path: "subjects" }
+            ]);
+
         const totalFind = await User.countDocuments(searchFilter);
         res.status(200).json({
             success: true,
-            data:findUser,
+            data: findUser,
             pagination: {
                 currentPage: page,
                 totalFind,
@@ -208,7 +215,12 @@ export const updateSF = async (req, res) => {
     try {
         let { id } = req.params;
         let { role, SID, enrollmentNumber, courseId, semester, division, HODId, subjects, email, ...commonFields } = req.body
+        let updates = {...req.body}
         const user = await User.findById(id)
+
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ success: false, error: "Invalid User ID" });
+        }
 
         if (!user) {
             return res.status(404).json({ success: false, Message: "User Not Found...!" })
@@ -223,10 +235,19 @@ export const updateSF = async (req, res) => {
                     }
                 }
             }
-            const updatedUser = await User.findByIdAndUpdate(
-                id, req.body,
-                { new: true, runValidators: true }
-            );
+            if (req.body.courseId === "" || !mongoose.Types.ObjectId.isValid(req.body.courseId)) {
+                delete req.body.courseId;
+            }
+            if (req.body.HODId === "" || !mongoose.Types.ObjectId.isValid(req.body.HODId)) {
+                delete req.body.HODId;
+            }
+            if(updates.password){
+                const saltRounds = 10;
+              const hashedPassword = await bcrypt.hash(updates.password, 10)
+                updates.password = hashedPassword
+            }
+            console.log("user",  updates);
+            const updatedUser = await User.findByIdAndUpdate(id, updates, { new: true, runValidators: true });
             res.status(201).json({ success: true, message: `${role} Update successfully`, user: updatedUser });
         } else {
             res.status(401).json({ success: false, message: "Unauthorized Page" });
@@ -240,7 +261,7 @@ export const updateSF = async (req, res) => {
 export const deleteSf = async (req, res) => {
     try {
         const { ids } = req.body;
-        
+
         const user = await User.find({ _id: { $in: ids } });
         if (user.length === 0) {
             return res.status(404).json({ success: false, Message: "User Not Found...!" })

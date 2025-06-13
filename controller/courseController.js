@@ -8,7 +8,8 @@ export const addCourse = async (req, res) => {
         if (findCourse) {
             return res.status(200).json({ success: true, message: "alrday Extis Course" })
         }
-
+        console.log(req.user);
+        
         if (req.user && req.user.role == "Admin") {
             const createCourse = await Course.create({ courseName })
             return res.status(201).json({ success: true, message: "Course Add SuccessFully..." })
